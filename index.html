@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Tax Value Calculator (Brooks, AB 2025)</title>
+    <!-- Load Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles using the new brand colors */
+        :root {
+            --primary-color: #0071bf; /* New Primary Blue */
+            --secondary-color: #ff9936; /* New Accent Orange */
+            --light-bg: #F9FAFB;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--light-bg);
+        }
+        /* Enhanced custom shadow for a more premium, lifted look */
+        .shadow-custom {
+            box-shadow: 0 15px 30px -5px rgba(0, 113, 191, 0.1), 0 6px 10px -3px rgba(0, 113, 191, 0.05);
+        }
+        .mill-rate-box {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        /* Stripe styling for the detailed breakdown table */
+        #expenditureTableBody tr:nth-child(even) {
+            background-color: #f7f9fc; /* Very light grey/blue for striping */
+        }
+        /* Style for the total row in the table */
+        #totalRow {
+            border-top: 3px solid var(--primary-color);
+            background-color: #e6f0f7; /* bg-primary-blue-light */
+        }
+        .text-primary-blue { color: var(--primary-color); }
+        .bg-primary-blue-light { background-color: #e6f0f7; }
+
+        /* Custom style for the visual allocation bar */
+        .allocation-bar {
+            height: 1.5rem;
+            display: flex;
+            overflow: hidden;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        
+        <!-- Header and Mill Rate Display -->
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">2025 Property Tax Value Tool</h1>
+            <p class="text-lg text-gray-600 mb-4">City of Brooks, Alberta (Residential/Farmland)</p>
+            
+            <div id="mill-rate-display" class="mill-rate-box p-4 sm:p-6 shadow-custom transform hover:scale-[1.01]">
+                <p class="text-sm uppercase tracking-wider opacity-90">2025 Total Mill Rate</p>
+                <p class="text-5xl font-extrabold mt-1" id="mill-rate-value">10.961423</p>
+            </div>
+        </header>
+
+        <!-- 1. Input and Total Tax Result -->
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-5 border-b-2 border-gray-200 pb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3 text-primary-blue"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            1. Your Property Assessment
+        </h2> 
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-custom mb-10">
+            
+            <label for="assessedValue" class="block text-base font-semibold text-gray-700 mb-2">Enter Assessed Property Value</label>
+            <div class="mt-1 relative rounded-lg shadow-md">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-lg font-bold">$</span>
+                </div>
+                <input type="number" id="assessedValue" name="assessedValue" 
+                       value="350000" min="1" step="1000" 
+                       class="block w-full pl-8 pr-12 py-3 border-2 border-gray-300 rounded-xl text-xl focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] transition duration-200 ease-in-out">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-base font-medium">CAD</span>
+                </div>
+            </div>
+
+            <!-- Total Tax Result Box -->
+            <div class="mt-8 p-6 bg-primary-blue-light border-l-8 border-[var(--primary-color)] rounded-xl transition duration-300 hover:shadow-xl">
+                <p class="text-lg font-bold text-gray-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 mr-2 text-[var(--secondary-color)]"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="12" x2="15" y2="12"></line><line x1="12" y1="9" x2="12" y2="15"></line></svg>
+                    Estimated Total Property Tax Bill:
+                </p>
+                <p class="text-5xl font-extrabold text-gray-900 mt-2" id="totalTaxAmount">$3,836.50</p>
+            </div>
+        </section>
+
+        <!-- 2. Major Fund Allocation -->
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-5 border-b-2 border-gray-200 pb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3 text-primary-blue"><path d="M12 20A7 7 0 1 0 12 4a7 7 0 1 0 0 16z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"></path><path d="M15.47 20.67a10 10 0 0 0 7.02-7.07"></path><path d="M8.53 20.67a10 10 0 0 1-7.02-7.07"></path><path d="M8.53 3.33a10 10 0 0 0 7.02 7.07"></path></svg>
+            2. Major Fund Allocation
+        </h2>
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-custom mb-10">
+            <!-- Visual Allocation Bar -->
+            <div class="mb-6">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Tax Dollar Distribution Overview (Total = 100%)</p>
+                <div class="allocation-bar">
+                    <div id="barMunicipal" class="h-full bg-[var(--primary-color)] flex items-center justify-center text-xs font-bold text-white transition-all duration-500"></div>
+                    <div id="barEducation" class="h-full bg-green-600 flex items-center justify-center text-xs font-bold text-white transition-all duration-500"></div>
+                    <div id="barHousing" class="h-full bg-red-600 flex items-center justify-center text-xs font-bold text-white transition-all duration-500"></div>
+                </div>
+            </div>
+
+            <!-- Detailed Breakdown Cards -->
+            <div class="grid md:grid-cols-3 gap-4">
+                
+                <div class="p-4 rounded-xl border-b-4 border-[var(--primary-color)] bg-primary-blue-light transition duration-200 hover:bg-white">
+                    <p class="text-xs font-semibold uppercase text-[var(--primary-color)]" id="municipalShareLabel">Municipal Portion (77.00%)</p>
+                    <p class="text-3xl font-extrabold text-gray-900 mt-1" id="municipalShare">$2,959.00</p>
+                </div>
+
+                <div class="p-4 rounded-xl border-b-4 border-green-600 bg-green-50 transition duration-200 hover:bg-white">
+                    <p class="text-xs font-semibold uppercase text-green-600">Alberta Education Fund (22.00%)</p>
+                    <p class="text-3xl font-extrabold text-gray-900 mt-1" id="educationShare">$844.03</p>
+                </div>
+
+                <div class="p-4 rounded-xl border-b-4 border-red-600 bg-red-50 transition duration-200 hover:bg-white">
+                    <p class="text-xs font-semibold uppercase text-red-600">Newell Housing Foundation (1.00%)</p>
+                    <p class="text-3xl font-extrabold text-gray-900 mt-1" id="housingShare">$38.37</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Detailed Municipal Expenditure Breakdown -->
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-5 mt-10 border-b-2 border-gray-200 pb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3 text-primary-blue"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+            3. Municipal Expenditure Breakdown
+        </h2>
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-custom">
+            <p class="text-sm text-gray-600 mb-4">Note: The sum of these amounts equals the Municipal Portion (77.00%) in Section 2.</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Department</th>
+                            <th scope="col" class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider w-1/4">Percent of Municipal Portion</th> <!-- UPDATED HEADER -->
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/4">Amount Paid (Annual)</th>
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider w-1/4">Monthly Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenditureTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Rows populated by JavaScript -->
+                    </tbody>
+                    <tfoot id="expenditureTableFoot">
+                        <!-- Total row populated by JavaScript -->
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+        
+        <!-- 4. Tax Increase Projection Calculator -->
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-5 mt-10 border-b-2 border-gray-200 pb-2 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-3 text-primary-blue"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+            4. Projected Tax Increase Calculator
+        </h2>
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-custom">
+            <p class="text-sm text-gray-600 mb-4">Calculate how a proposed tax increase percentage will affect your estimated total bill.</p>
+
+            <label for="taxIncreasePct" class="block text-base font-semibold text-gray-700 mb-2">Enter Proposed Tax Increase (%)</label>
+            <div class="mt-1 relative rounded-lg shadow-md">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    <span class="text-gray-500 sm:text-base font-bold">%</span>
+                </div>
+                <input type="number" id="taxIncreasePct" name="taxIncreasePct" 
+                       value="0" min="0" step="0.1" 
+                       class="block w-full pr-12 py-3 border-2 border-gray-300 rounded-xl text-xl focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] transition duration-150 ease-in-out">
+            </div>
+
+            <div class="mt-6 space-y-4">
+                <div class="p-4 bg-red-50 border-l-4 border-red-600 rounded-lg">
+                    <p class="text-sm font-medium text-gray-700">Increase Amount:</p>
+                    <p class="text-2xl font-bold text-red-700 mt-1" id="increaseAmount">$0.00</p>
+                </div>
+                <div class="p-4 bg-blue-50 border-l-4 border-[var(--primary-color)] rounded-lg">
+                    <p class="text-sm font-medium text-gray-700">Projected New Total Tax Bill:</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-1" id="newTotalTaxAmount">$3,836.50</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-10 text-center text-sm text-gray-500">
+            <p>*Calculations are based on the City of Brooks, AB 2025 Residential/Farmland Mill Rate (10.961423).</p>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const millRate = 10.961423;
+            const assessedValueInput = document.getElementById('assessedValue');
+            const totalTaxAmountEl = document.getElementById('totalTaxAmount');
+            const municipalShareEl = document.getElementById('municipalShare');
+            const educationShareEl = document.getElementById('educationShare');
+            const housingShareEl = document.getElementById('housingShare');
+            const municipalShareLabelEl = document.getElementById('municipalShareLabel');
+            const expenditureTableBody = document.getElementById('expenditureTableBody');
+            const expenditureTableFoot = document.getElementById('expenditureTableFoot');
+
+            // Visualizer Bar elements
+            const barMunicipalEl = document.getElementById('barMunicipal');
+            const barEducationEl = document.getElementById('barEducation');
+            const barHousingEl = document.getElementById('barHousing');
+
+            // Variables for Projection
+            const taxIncreasePctInput = document.getElementById('taxIncreasePct');
+            const increaseAmountEl = document.getElementById('increaseAmount');
+            const newTotalTaxAmountEl = document.getElementById('newTotalTaxAmount');
+
+            let currentTotalTax = 0; // Holds the calculated tax for the projection
+
+            // Detailed expenditure breakdown (Original raw percentages, used for proportionality)
+            const municipalBreakdownRaw = [
+                { dept: "Policing", percentage: 0.21 },
+                { dept: "Recreation", percentage: 0.172 },
+                { dept: "Transportation", percentage: 0.167 },
+                { dept: "Admin", percentage: 0.11 },
+                { dept: "Parks", percentage: 0.065 },
+                { dept: "Culture and Facilities", percentage: 0.053 },
+                { dept: "Fiscal and Taxation", percentage: 0.051 },
+                { dept: "Fire", percentage: 0.0411 },
+                { dept: "Community Support Services", percentage: 0.033 },
+                { dept: "Municipal Enforcement", percentage: 0.021 },
+                { dept: "Planning and Development", percentage: 0.02 },
+                { dept: "Council", percentage: 0.018 },
+                { dept: "Economic Development", percentage: 0.011 },
+                { dept: "Access Transit", percentage: 0.01 },
+                { dept: "Land", percentage: 0.005 },
+                { dept: "Cemetery", percentage: 0.005 },
+                { dept: "Engineering", percentage: 0.004 },
+                { dept: "Airport", percentage: 0.004 },
+            ];
+
+            // The sum of the raw breakdown percentages (0.9011)
+            const totalMunicipalPercentageOld = municipalBreakdownRaw.reduce((sum, item) => sum + item.percentage, 0); 
+            
+            // CORRECTED Major Tax allocation percentages (must sum to 1.0)
+            const majorAllocations = {
+                municipal: 0.77, // 77% of Total Tax Bill
+                education: 0.22, // 22% of Total Tax Bill
+                housing: 0.01  // 1% of Total Tax Bill
+            };
+            
+            // Function to update the visual allocation bar
+            const updateAllocationBar = () => {
+                const munPct = majorAllocations.municipal * 100;
+                const eduPct = majorAllocations.education * 100;
+                const houPct = majorAllocations.housing * 100;
+
+                barMunicipalEl.style.width = `${munPct}%`;
+                barEducationEl.style.width = `${eduPct}%`;
+                barHousingEl.style.width = `${houPct}%`;
+
+                // Set text labels and update municipal share label
+                const munText = munPct.toFixed(2);
+                const eduText = eduPct.toFixed(2);
+                const houText = houPct.toFixed(2);
+
+                barMunicipalEl.textContent = munPct > 5 ? `${munText}%` : '';
+                barEducationEl.textContent = eduPct > 5 ? `${eduText}%` : '';
+                barHousingEl.textContent = houPct > 5 ? `${houText}%` : '';
+                
+                municipalShareLabelEl.textContent = `Municipal Portion (${munText}%)`;
+            };
+
+
+            // Function to format currency
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('en-CA', { 
+                    style: 'currency', 
+                    currency: 'CAD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2 
+                }).format(amount);
+            };
+
+            // Projection Calculation Function
+            const calculateIncreaseProjection = () => {
+                const increasePercent = parseFloat(taxIncreasePctInput.value) || 0;
+                
+                if (currentTotalTax <= 0 || increasePercent < 0) {
+                    increaseAmountEl.textContent = formatCurrency(0);
+                    // Crucial: Use the rounded currentTotalTax for 0% change check
+                    newTotalTaxAmountEl.textContent = formatCurrency(currentTotalTax); 
+                    return;
+                }
+                
+                // Calculate increase based on the current total tax bill
+                const increaseAmount = currentTotalTax * (increasePercent / 100);
+                // Ensure new total is also rounded to the nearest cent
+                const newTotalTax = Math.round((currentTotalTax + increaseAmount) * 100) / 100;
+                
+                increaseAmountEl.textContent = formatCurrency(increaseAmount);
+                newTotalTaxAmountEl.textContent = formatCurrency(newTotalTax);
+            };
+
+            // Main calculation function
+            const calculateTax = () => {
+                const assessedValue = parseFloat(assessedValueInput.value) || 0;
+                
+                if (assessedValue <= 0) {
+                    currentTotalTax = 0;
+                    totalTaxAmountEl.textContent = formatCurrency(0);
+                    municipalShareEl.textContent = formatCurrency(0);
+                    educationShareEl.textContent = formatCurrency(0);
+                    housingShareEl.textContent = formatCurrency(0);
+                    expenditureTableBody.innerHTML = '';
+                    expenditureTableFoot.innerHTML = '';
+                    calculateIncreaseProjection();
+                    return;
+                }
+
+                // 1. Calculate Total Tax (Based on the total mill rate)
+                const totalTaxRaw = (assessedValue / 1000) * millRate;
+                // Round the total tax to the nearest cent (FIX for 0% discrepancy)
+                currentTotalTax = Math.round(totalTaxRaw * 100) / 100;
+                totalTaxAmountEl.textContent = formatCurrency(currentTotalTax);
+
+                // 2. Major Allocation (Based on the 77/22/1 split)
+                const municipalShareRaw = currentTotalTax * majorAllocations.municipal;
+                const educationShareRaw = currentTotalTax * majorAllocations.education;
+                const housingShareRaw = currentTotalTax * majorAllocations.housing;
+
+                // Round major shares for display consistency
+                const municipalShare = Math.round(municipalShareRaw * 100) / 100;
+                const educationShare = Math.round(educationShareRaw * 100) / 100;
+                const housingShare = Math.round(housingShareRaw * 100) / 100;
+
+                municipalShareEl.textContent = formatCurrency(municipalShare);
+                educationShareEl.textContent = formatCurrency(educationShare);
+                housingShareEl.textContent = formatCurrency(housingShare);
+                
+                // 3. Detailed Municipal Expenditure Breakdown
+                expenditureTableBody.innerHTML = '';
+                let totalAnnualPaid = 0;
+                let totalMonthlyCost = 0;
+
+                municipalBreakdownRaw.forEach(item => {
+                    // Calculate the percentage of the MUNICIPAL PORTION
+                    const percentageOfMunicipal = (item.percentage / totalMunicipalPercentageOld);
+                    
+                    // Calculate the dollar amount as a portion of the municipalShare
+                    const amount = municipalShare * percentageOfMunicipal;
+                    
+                    const monthlyAmount = amount / 12;
+
+                    totalAnnualPaid += amount;
+                    totalMonthlyCost += monthlyAmount;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${item.dept}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-500">${(percentageOfMunicipal * 100).toFixed(2)}%</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-right text-gray-800">${formatCurrency(amount)}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-right text-gray-800">${formatCurrency(monthlyAmount)}</td>
+                    `;
+                    expenditureTableBody.appendChild(row);
+                });
+
+                // Round the final municipal totals to ensure they match the municipalShare display exactly
+                totalAnnualPaid = Math.round(totalAnnualPaid * 100) / 100;
+                totalMonthlyCost = Math.round(totalMonthlyCost * 100) / 100;
+
+
+                // Add the Total Row to the footer (No percentage displayed)
+                expenditureTableFoot.innerHTML = `
+                    <tr id="totalRow">
+                        <td class="px-3 py-3 whitespace-nowrap text-base font-extrabold text-gray-900" colspan="2">TOTAL MUNICIPAL ALLOCATION</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-base font-extrabold text-right text-gray-900">${formatCurrency(totalAnnualPaid)}</td>
+                        <td class="px-3 py-3 whitespace-nowrap text-base font-extrabold text-right text-gray-900">${formatCurrency(totalMonthlyCost)}</td>
+                    </tr>
+                `;
+
+
+                // 4. Update the Projection Calculator and Visual Bar
+                calculateIncreaseProjection();
+                updateAllocationBar();
+            };
+
+            // Event Listener for input changes
+            assessedValueInput.addEventListener('input', calculateTax);
+            taxIncreasePctInput.addEventListener('input', calculateIncreaseProjection);
+            
+            // Initial run with the default value (350000)
+            calculateTax();
+        });
+    </script>
+</body>
+</html>
